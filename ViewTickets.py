@@ -1,6 +1,8 @@
 from tkinter import *
 from DataBase import EventDetails
 from DataBase import TicketDetails
+import openpyxl
+from openpyxl import Workbook
 
 def ViewTickets():
     top4 = Tk()
@@ -19,7 +21,12 @@ def ViewTickets():
         Label(top4, text="Event Name").grid(row=3, column=2, padx=10, pady=10)
         Label(top4, text="Event Date").grid(row=3, column=3, padx=10, pady=10)
         required_tickets = []
-        for i in TicketDetails()[7]:
+        print(TicketDetails()[7])
+        # excel view
+        workbook=openpyxl.load_workbook('events.xlsx')
+        worksheet=workbook['TicketDetails']
+        print([row for row in worksheet.iter_rows(min_row=2,values_only=True)])
+        for i in [row for row in worksheet.iter_rows(min_row=2,values_only=True)]:
             if event_name.get() in i:
                 required_tickets.append(i)
         for i in range(len(required_tickets)):

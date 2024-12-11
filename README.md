@@ -4,11 +4,11 @@ This is an Event Management System built using Python and Tkinter for a graphica
 
 ## Features
 
-- **Create Event:** Admins can create events and store event details.
-- **Book Ticket:** Users can book tickets for available events.
-- **Cancel Ticket:** Users can cancel previously booked tickets.
-- **View Events:** Displays a list of all available events.
-- **View Tickets:** Allows users to view their booked tickets.
+- **Create Event**: Admins can create events and store event details.
+- **Book Ticket**: Users can book tickets for available events.
+- **Cancel Ticket**: Users can cancel previously booked tickets.
+- **View Events**: Displays a list of all available events.
+- **View Tickets**: Allows users to view their booked tickets.
 
 ## Requirements
 
@@ -18,42 +18,41 @@ This is an Event Management System built using Python and Tkinter for a graphica
 
 ## Files Description
 
-### 1. `Book.py`
-This file contains the logic for booking tickets for available events. It interacts with the database to check availability and book tickets accordingly.
+1. **Book.py**
 
-### 2. `Cancelticket.py`
-This file allows users to cancel their booked tickets. It handles removing ticket details from the database.
+   This file contains the logic for booking tickets for available events. It interacts with the database to check availability and book tickets accordingly.
 
-### 3. `createevent.py`
-This script is responsible for creating new events. It allows admins to enter event details such as name, date, and location, and saves these details to the database.
+2. **Cancelticket.py**
 
-### 4. `database.py`
-This file contains the database-related logic, including saving and retrieving event and ticket information. It defines the `TicketDetails` and `EventDetails` classes to handle database interactions.
+   This file allows users to cancel their booked tickets. It handles removing ticket details from the database.
 
-### 5. `generatenewcode.py`
-Generates a new unique code for each ticket booking. This file contains a function to generate random IDs for tickets, ensuring that each ticket has a unique identifier.
+3. **createevent.py**
 
-### 6. `main.py`
-The entry point for the application. This file initializes the Tkinter GUI and integrates all the functionalities like creating events, booking tickets, and viewing events.
+   This script is responsible for creating new events. It allows admins to enter event details such as name, date, and location, and saves these details to the database.
 
-### 7. `message.py`
-This file contains the function `show_message`, which is used to display pop-up messages to users throughout the application. It informs users of actions like successful bookings or cancellations.
+4. **database.py**
 
-### 8. `tempCodeRunnerfilerunner.py`
-A temporary file used for testing or running specific sections of code. This file is not essential for the overall system but may be used for debugging purposes during development.
+   This file contains the database-related logic, including saving and retrieving event and ticket information.
 
-### 9. `viewEvents.py`
-Allows users to view all the available events. It fetches event data from the database and displays it in the GUI.
+5. **UI.py**
 
-### 10. `ViewTickets.py`
-This file displays the list of tickets booked by the user. It interacts with the database to fetch the user's ticket details and displays them on the GUI.
+   This file contains the graphical user interface (GUI) of the Event Management System built using Python's Tkinter library. It is responsible for displaying the main window where users can view available events and purchase tickets. Here's a breakdown of the main components:
 
-## Installation
+   - **Main Window**: The main window is set up with a professional, minimalistic design using a refined color palette.
+     - The window displays the title "Samaaye Events" with a header containing the logo and navigation menu.
+   
+   - **Event Cards**: The events are displayed as cards that show event details, including the event title, date, time, location, and a corresponding image (if available). Each card is clickable, and clicking on it opens a new window where users can purchase tickets.
+   
+   - **Ticket Purchase Window**: This window allows users to select the number of tickets they want to purchase, shows the total price, and confirms the ticket purchase. Users can confirm or cancel the purchase.
+   
+   - **Responsive Layout**: The layout of event cards is responsive and adapts to the screen size, showing 1, 2, or 3 columns depending on the width of the window.
 
-1. Clone or download the repository.
-2. Make sure you have Python 3.x installed.
-3. Ensure that Tkinter is installed on your system.
-4. Run `main.py` to start the Event Management System.
+   - **Error Handling**: The script includes error handling to display error messages if an issue arises, such as if an event's image cannot be found.
 
-```bash
-python main.py
+   - **Dependencies**:
+     - Tkinter for the GUI.
+     - PIL (Python Imaging Library) for image handling.
+
+   The UI is designed to be simple and user-friendly, allowing users to easily navigate through events and book tickets.
+
+---

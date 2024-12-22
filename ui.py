@@ -19,7 +19,7 @@ def show_error(error):
 try:
     # Create the main window
     root = tk.Tk()
-    root.title("Samaaye Interactives")
+    root.title("Samaaye Events")
     root.geometry("1200x900")  # Adjust initial window size
     root.configure(bg=ACCENT_COLOR)
     root.update_idletasks()  # Ensure proper window initialization

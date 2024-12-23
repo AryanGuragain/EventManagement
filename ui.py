@@ -185,40 +185,59 @@ try:
             error_label = tk.Label(content_frame, text="Image Error", bg="white", fg="red")
             error_label.pack(pady=5)
 
+        # Info container frame (for left-aligned text)
+        info_frame = tk.Frame(content_frame, bg="white")
+        info_frame.pack(fill=tk.X, padx=15, pady=10)
+
         # Event Date
-        date_label = tk.Label(content_frame, text=event["date"], 
+        date_label = tk.Label(info_frame, text=event["date"], 
                               bg="white", fg=BUTTON_COLOR, 
-                              font=("Helvetica", 16))
-        date_label.pack(fill=tk.X, padx=15, pady=10)
+                              font=("Helvetica", 16), anchor="w")
+        date_label.pack(fill=tk.X)
 
         # Event Title
         title_label = tk.Label(
-            content_frame, text=event["title"], bg="white", fg=PRIMARY_COLOR, 
-            font=("Helvetica", 18), wraplength=380, justify="center"
+            info_frame, text=event["title"], bg="white", fg=PRIMARY_COLOR, 
+            font=("Helvetica", 18), anchor="w", justify="left"
         )
-        title_label.pack(pady=10)
+        title_label.pack(fill=tk.X, pady=(5,0))
 
         # Event Time and Location
-        time_label = tk.Label(content_frame, text=event["time"], bg="white", fg=TEXT_COLOR, 
-                              font=("Helvetica", 12))
-        time_label.pack()
+        time_label = tk.Label(info_frame, text=event["time"], bg="white", fg=TEXT_COLOR, 
+                              font=("Helvetica", 12), anchor="w")
+        time_label.pack(fill=tk.X)
 
-        location_label = tk.Label(content_frame, text=event["location"], bg="white", fg=TEXT_COLOR, 
-                                  font=("Helvetica", 12))
-        location_label.pack()
+        location_label = tk.Label(info_frame, text=event["location"], bg="white", fg=TEXT_COLOR, 
+                                  font=("Helvetica", 12), anchor="w")
+        location_label.pack(fill=tk.X)
 
-        # Price Information
-        price_label = tk.Label(content_frame, text=f"NPR {event['ticket_price']}", 
+        # Bottom container for price and button
+        bottom_frame = tk.Frame(content_frame, bg="white")
+        bottom_frame.pack(fill=tk.X, padx=15, pady=(10,0))
+
+        # Price Information (left side)
+        price_label = tk.Label(bottom_frame, text=f"NPR {event['ticket_price']}", 
                                bg="white", fg=BUTTON_COLOR, 
-                               font=("Helvetica", 14))
-        price_label.pack(pady=10)
+                               font=("Helvetica", 14), anchor="w")
+        price_label.pack(side=tk.LEFT)
+
+        # Submit Button (right side)
+        submit_button = tk.Button(bottom_frame, text="Buy Tickets", 
+                                 bg=BUTTON_COLOR, fg=ACCENT_COLOR,
+                                 font=("Helvetica", 12),
+                                 command=lambda: purchase_ticket(event))
+        submit_button.pack(side=tk.RIGHT)
 
         # Bind click event
         def open_purchase(e):
             purchase_ticket(event)
 
-        # Bind click event to the card and its children
-        widgets_to_bind = [card, content_frame] + list(content_frame.winfo_children())
+        # Bind click event to the card and its children (except the button)
+        widgets_to_bind = [card, content_frame, info_frame] + [
+            w for w in info_frame.winfo_children() + content_frame.winfo_children() 
+            if not isinstance(w, tk.Button)
+        ]
+        
         for widget in widgets_to_bind:
             widget.bind("<Button-1>", open_purchase)
             widget.bind("<Enter>", lambda e: root.config(cursor="hand2"))

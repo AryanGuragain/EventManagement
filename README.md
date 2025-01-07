@@ -1,55 +1,51 @@
-# Event Management System
+# Event Management UI
 
-This is an Event Management System built using Python and Tkinter for a graphical user interface (GUI). The system allows users to create events, view events, book and cancel tickets, and manage event-related tasks. Below is a detailed overview of the files included in this system.
+## Overview
+The Event Management UI is a Python-based application designed to help users browse and book tickets for various events. The application features a user-friendly interface, responsive design, and robust functionality for managing event bookings.
 
 ## Features
 
-- **Create Event**: Admins can create events and store event details.
-- **Book Ticket**: Users can book tickets for available events.
-- **Cancel Ticket**: Users can cancel previously booked tickets.
-- **View Events**: Displays a list of all available events.
-- **View Tickets**: Allows users to view their booked tickets.
+### `ui.py`
+- **Enhanced Event Cards**: View event details with a "View Details" button that opens a modal with more information.
+- **Improved Responsiveness**: Layout adjustments for better usability on smaller screens.
+- **Search Functionality**: Filter events by title using a search bar.
 
-## Requirements
+### `ui2.py`
+- **Booking Confirmation Email**: Sends a confirmation email to users after successful bookings (requires SMTP configuration).
+- **Input Validation**: Ensures mobile numbers and MPINs meet specified formats.
+- **Booking Summary**: Displays a detailed breakdown of ticket prices and totals.
 
-- Python 3.x
-- Tkinter (Usually comes pre-installed with Python)
-- Any standard Python libraries for database management
+### `ticket.py`
+- **Improved Navigation**: Easy switching between different sections of the application.
+- **User  Feedback**: Provides feedback messages for actions like ticket purchases.
+- **Event Filtering**: Filter events based on categories or types.
 
-## Files Description
+## Improvements
+- **Code Refactoring**: Enhanced code readability and maintainability.
+- **Error Handling**: Improved error messages for database operations.
+- **User  Interface Enhancements**: Updated color schemes and added button hover effects.
 
-1. **Book.py**
+## Bug Fixes
+- **Image Loading Issues**: Resolved problems with images not loading correctly.
+- **Database Connection Handling**: Ensured proper closure of database connections.
 
-   This file contains the logic for booking tickets for available events. It interacts with the database to check availability and book tickets accordingly.
+## How to Use
+1. **Browsing Events**:
+   - Open `ui.py` to view upcoming events.
+   - Use the search bar to filter events by title.
+   - Click on "View Details" for more information about an event.
 
-2. **Cancelticket.py**
+2. **Booking Tickets**:
+   - In the ticket booking interface (`ui2.py`), adjust the ticket quantity as needed.
+   - Fill in your details in the booking form, ensuring valid mobile numbers and MPINs.
+   - Click the "BOOK TICKET" button to confirm your booking. A confirmation email will be sent to your registered email address.
 
-   This file allows users to cancel their booked tickets. It handles removing ticket details from the database.
-
-3. **createevent.py**
-
-   This script is responsible for creating new events. It allows admins to enter event details such as name, date, and location, and saves these details to the database.
-
-4. **database.py**
-
-   This file contains the database-related logic, including saving and retrieving event and ticket information.
-
-#### `ui.py`
-- **Main Window**: The primary interface for browsing upcoming events.
-  - **Header**: Displays the company logo and navigation menu.
-  - **Event Cards**: Each card displays event details such as title, date, time, location, image, ticket price, and available tickets.
-  - **Responsive Design**: Dynamically adjusts the layout based on the screen size.
-  - **Ticket Purchase**: Clicking the "Buy Tickets" button launches the ticket booking interface (`ui2.py`) with the event details.
-
-#### `ui2.py`
-- **Ticket Booking Interface**: A separate window for booking tickets for a selected event.
-  - **Event Details**: Displays event title, date, time, location, and ticket price.
-  - **Ticket Quantity**: Users can adjust the ticket quantity using "+" and "-" buttons.
-  - **Total Price Calculation**: Dynamically updates the total price based on the ticket quantity.
-  - **Booking Form**: Collects user details such as name, mobile number, and MPIN.
-  - **Booking Confirmation**: Provides a "BOOK TICKET" button to confirm the booking.
-
-### What Changed
-- **Dynamic Ticket Quantity Adjustment**: Added functionality to adjust ticket quantity using "+" and "-" buttons.
-- **Real-time Price Update**: The total price updates dynamically as the ticket quantity changes.
-- **Event Data Passing**: Event data is passed from `ui.py` to `ui2.py` as command-line arguments to pre-fill booking details.
+3. **Navigating the Application**:
+   - Use the navigation menu in `ticket.py` to switch between sections like Events, Tickets, Stats, and My Account.
+[Screenshot from 2025-01-07 14-35-08](https://github.com/user-attachments/assets/5279d218-23dc-4f8b-91d3-f3e241bb318e)
+![Screenshot from 2025-01-07 14-35-14](https://github.com/user-attachments/assets/ec779dda-a0f9-4e45-ad88-b2d687bae77f)
+![Screenshot from 2025-01-07 14-35-19](https://github.com/user-attachments/assets/9db9892e-6a53-4af8-a4d6-fffa11021504)
+## Installation
+To run the application, ensure you have Python and the required libraries installed. You can install the necessary libraries using the following command:
+```bash
+pip install tkinter pillow!

@@ -42,6 +42,7 @@ The Event Management UI is a Python-based application designed to help users bro
 
 3. **Navigating the Application**:
    - Use the navigation menu in `ticket.py` to switch between sections like Events, Tickets, Stats, and My Account.
+     
 [Screenshot from 2025-01-07 14-35-08](https://github.com/user-attachments/assets/5279d218-23dc-4f8b-91d3-f3e241bb318e)
 ![Screenshot from 2025-01-07 14-35-14](https://github.com/user-attachments/assets/ec779dda-a0f9-4e45-ad88-b2d687bae77f)
 ![Screenshot from 2025-01-07 14-35-19](https://github.com/user-attachments/assets/9db9892e-6a53-4af8-a4d6-fffa11021504)

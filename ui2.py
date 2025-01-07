@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import sqlite3
 import sys
 
 # Original Color Palette
@@ -54,12 +55,15 @@ class TicketBookingApp:
     def __init__(self, root, event):
         self.root = root
         self.root.title("Samaaye Events - Ticket Booking")
-        self.root.geometry("1200x1800")
+        self.root.geometry("1200x800")
         self.root.configure(bg=COLORS['accent'])
         
         self.event = event
         self.ticket_quantity = tk.IntVar(value=1)
         
+        # Setup database
+        self.setup_database()
+
         # Configure grid weights for responsive layout
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_rowconfigure(1, weight=1)
@@ -67,6 +71,30 @@ class TicketBookingApp:
         self._create_header()
         self._create_content_container()
         
+    def setup_database(self):
+        """Setup SQLite database if it doesn't exist"""
+        conn = sqlite3.connect('samaaye_events.db')
+        cursor = conn.cursor()
+        
+        # Create bookings table if it doesn't exist
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS bookings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                mobile TEXT NOT NULL,
+                event_title TEXT NOT NULL,
+                event_date TEXT NOT NULL,
+                event_time TEXT NOT NULL,
+                event_location TEXT NOT NULL,
+                ticket_quantity INTEGER NOT NULL,
+                total_price REAL NOT NULL,
+                booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        conn.commit()
+        conn.close()
+
     def _create_header(self):
         header = tk.Frame(self.root, bg=COLORS['primary'], height=70)
         header.grid(row=0, column=0, sticky="ew")
@@ -295,6 +323,29 @@ class TicketBookingApp:
             if not entry.get() or entry.get() == entry.placeholder:
                 messagebox.showwarning("Incomplete Form", f"Please enter your {label.lower()}")
                 return
+        
+        # Save booking to database
+        try:
+            conn = sqlite3.connect('samaaye_events.db')
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO bookings (name, mobile, event_title, event_date, event_time, event_location, ticket_quantity, total_price)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                self.entries["Full Name"].get(),
+                self.entries["Mobile Number"].get(),
+                self.event['title'],
+                self.event['date'],
+                self.event['time'],
+                self.event['location'],
+                self.ticket_quantity.get(),
+                self.calculate_total_price()
+            ))
+            conn.commit()
+            conn.close()
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error saving booking: {str(e)}")
+            return
         
         # Show confirmation
         total = self.calculate_total_price()

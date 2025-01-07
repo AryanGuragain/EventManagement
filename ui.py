@@ -39,6 +39,29 @@ def purchase_ticket(event):
     except Exception as e:
         show_error(f"Error launching ui2.py: {str(e)}")
 
+# Function to handle menu item clicks
+def handle_menu_click(item):
+    if item == "Tickets":
+        print("Tickets menu item clicked!")  # Debug statement
+        # Get the directory of the current script
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # Construct the path to ticket.py
+        tickets_path = os.path.join(current_dir, "ticket.py")
+        
+        try:
+            subprocess.Popen(["python3", tickets_path])
+        except Exception as e:
+            show_error(f"Error launching ticket.py: {str(e)}")
+    elif item == "Events":
+        print("Events menu item clicked!")  # Debug statement
+        messagebox.showinfo("Info", "Events menu item clicked!")
+    elif item == "Stats":
+        print("Stats menu item clicked!")  # Debug statement
+        messagebox.showinfo("Info", "Stats menu item clicked!")
+    elif item == "My Account":
+        print("My Account menu item clicked!")  # Debug statement
+        messagebox.showinfo("Info", "My Account menu item clicked!")
+
 # Function to create an event card widget
 def create_event_card(parent, event):
     # Main card frame
@@ -125,7 +148,7 @@ def create_event_card(parent, event):
     for widget in widgets_to_bind:
         widget.bind("<Button-1>", open_purchase)
         widget.bind("<Enter>", lambda e: root.config(cursor="hand2"))
-        widget .bind("<Leave>", lambda e: root.config(cursor=""))
+        widget.bind("<Leave>", lambda e: root.config(cursor=""))
 
     return card
 
@@ -185,6 +208,8 @@ try:
         menu_label = tk.Label(menu, text=menu_item, bg=PRIMARY_COLOR, fg=ACCENT_COLOR, 
                               font=("Helvetica", 14))
         menu_label.pack(side=tk.LEFT, padx=20)
+        # Bind click event to menu items
+        menu_label.bind("<Button-1>", lambda e, item=menu_item: handle_menu_click(item))
 
     # Title - Clean, minimalistic
     title = tk.Label(root, text="Upcoming Events", bg=ACCENT_COLOR, fg=PRIMARY_COLOR, 

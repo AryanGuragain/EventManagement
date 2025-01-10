@@ -5,7 +5,6 @@ from PIL import Image, ImageTk
 import traceback
 import tkinter.messagebox as messagebox
 import subprocess
-import platform
 
 # Refined Color Palette - Professional and Minimalistic
 PRIMARY_COLOR = "#2C3E50"      # Charcoal Blue - Elegant Base Color
@@ -13,34 +12,6 @@ SECONDARY_COLOR = "#34495E"    # Dark Slate Blue - Subtle Depth
 ACCENT_COLOR = "#ECF0F1"       # Light Cloud Gray - Clean Background
 BUTTON_COLOR = "#2980B9"       # Calm Blue - Sophisticated Interaction
 TEXT_COLOR = "#2C3E50"         # Dark Charcoal for Readability
-
-# Function to maximize window across different platforms
-def maximize_window(root):
-    system = platform.system().lower()
-    
-    if system == "windows":
-        root.geometry("1200x1800")
-    elif system == "darwin":  # macOS
-        # First set the position and size
-        screen_width = root.winfo_screenwidth()
-        screen_height = root.winfo_screenheight()
-        root.geometry(f"{screen_width}x{screen_height}+0+0")
-        # macOS does not have a direct way to maximize, so we set the geometry to cover the screen
-    else:  # Linux and other Unix-like systems
-        root.attributes('-zoomed', True)
-
-# Function to restore window size
-def restore_window(root):
-    system = platform.system().lower()
-    
-    if system == "windows":
-        root.state('normal')
-        root.geometry('1024x768')  # Reset to a reasonable default size
-    elif system == "darwin":  # macOS
-        root.geometry('1024x768')  # Reset to a reasonable default size
-    else:  # Linux and other Unix-like systems
-        root.attributes('-zoomed', False)
-        root.geometry('1024x768')  # Reset to a reasonable default size
 
 # Function to display error message in a message box
 def show_error(error):
@@ -216,11 +187,8 @@ try:
     root = tk.Tk()
     root.title("Samaaye Events")
     
-    # Configure window properties after initialization
-    root.update_idletasks()
-    
-    # Cross-platform window maximization
-    maximize_window(root)
+    # Set window geometry instead of maximized state
+    root.geometry("1200x800")
     
     root.configure(bg=ACCENT_COLOR)
 
@@ -291,16 +259,11 @@ try:
 
     # Bind event to update layout when window is resized
     def resize_handler(event):
+        # Only update if the event is for the root window
         if event.widget == root:
             update_event_cards()
 
     root.bind("<Configure>", resize_handler)
-
-    # Bind the Escape key to exit maximized mode
-    def exit_maximized(event):
-        restore_window(root)
-
-    root.bind("<Escape>", exit_maximized)
 
     # Run the application
     root.mainloop()

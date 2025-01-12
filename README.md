@@ -34,22 +34,25 @@ This is an Event Management System built using Python and Tkinter for a graphica
 
    This file contains the database-related logic, including saving and retrieving event and ticket information.
 
-#### `ui.py`
-- **Main Window**: The primary interface for browsing upcoming events.
-  - **Header**: Displays the company logo and navigation menu.
-  - **Event Cards**: Each card displays event details such as title, date, time, location, image, ticket price, and available tickets.
-  - **Responsive Design**: Dynamically adjusts the layout based on the screen size.
-  - **Ticket Purchase**: Clicking the "Buy Tickets" button launches the ticket booking interface (`ui2.py`) with the event details.
+5. **UI.py**
 
-#### `ui2.py`
-- **Ticket Booking Interface**: A separate window for booking tickets for a selected event.
-  - **Event Details**: Displays event title, date, time, location, and ticket price.
-  - **Ticket Quantity**: Users can adjust the ticket quantity using "+" and "-" buttons.
-  - **Total Price Calculation**: Dynamically updates the total price based on the ticket quantity.
-  - **Booking Form**: Collects user details such as name, mobile number, and MPIN.
-  - **Booking Confirmation**: Provides a "BOOK TICKET" button to confirm the booking.
+   This file contains the graphical user interface (GUI) of the Event Management System built using Python's Tkinter library. It is responsible for displaying the main window where users can view available events and purchase tickets. Here's a breakdown of the main components:
 
-### What Changed
-- **Dynamic Ticket Quantity Adjustment**: Added functionality to adjust ticket quantity using "+" and "-" buttons.
-- **Real-time Price Update**: The total price updates dynamically as the ticket quantity changes.
-- **Event Data Passing**: Event data is passed from `ui.py` to `ui2.py` as command-line arguments to pre-fill booking details.
+   - **Main Window**: The main window is set up with a professional, minimalistic design using a refined color palette.
+     - The window displays the title "Samaaye Events" with a header containing the logo and navigation menu.
+   
+   - **Event Cards**: The events are displayed as cards that show event details, including the event title, date, time, location, and a corresponding image (if available). Each card is clickable, and clicking on it opens a new window where users can purchase tickets.
+   
+   - **Ticket Purchase Window**: This window allows users to select the number of tickets they want to purchase, shows the total price, and confirms the ticket purchase. Users can confirm or cancel the purchase.
+   
+   - **Responsive Layout**: The layout of event cards is responsive and adapts to the screen size, showing 1, 2, or 3 columns depending on the width of the window.
+
+   - **Error Handling**: The script includes error handling to display error messages if an issue arises, such as if an event's image cannot be found.
+
+   - **Dependencies**:
+     - Tkinter for the GUI.
+     - PIL (Python Imaging Library) for image handling.
+
+   The UI is designed to be simple and user-friendly, allowing users to easily navigate through events and book tickets.
+
+---

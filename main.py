@@ -84,7 +84,6 @@ from CreateEvent import CreateEvent
 from ViewTickets import ViewTickets
 from ViewEvents import ViewEvents
 from CancelTicket import CancelTicket
-from ShowGraph import ShowGraph  # Import the function to display the graph
 
 # Initialize main application window
 top = Tk()

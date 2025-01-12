@@ -187,9 +187,8 @@ try:
     root = tk.Tk()
     root.title("Samaaye Events")
     
-    # Configure window properties after the window has been fully initialized
-    root.update_idletasks()  # Ensure proper window initialization
-    root.attributes('-zoomed', True)  # Maximize the window
+    # Set window geometry instead of maximized state
+    root.geometry("1200x800")
     
     root.configure(bg=ACCENT_COLOR)
 
@@ -265,12 +264,6 @@ try:
             update_event_cards()
 
     root.bind("<Configure>", resize_handler)
-
-    # Optionally, bind the Escape key to exit maximized mode
-    def exit_maximized(event):
-        root.state('normal')  # Restore to normal state
-
-    root.bind("<Escape>", exit_maximized)
 
     # Run the application
     root.mainloop()

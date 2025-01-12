@@ -119,8 +119,10 @@ try:
         root.state('zoomed')
     elif platform.system() == "Darwin":
         root.attributes('-fullscreen', True)
-    else:
-        root.state('zoomed')
+    elif platform.system() == "Linux":
+        root.state('normal')  # or you can use root.attributes('-zoomed', True) if supported
+        root.attributes('-fullscreen', False)  # Ensure it's not in fullscreen
+        root.geometry("1200x800")  # Set a default size for Linux
 
     root.configure(bg=ACCENT_COLOR)
 

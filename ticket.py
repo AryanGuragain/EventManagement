@@ -60,7 +60,7 @@ class TicketViewer:
         company_name.pack(side="left", padx=20, pady=10)
 
         # Navigation buttons
-        nav_buttons = ["Events", "Tickets", "Stats", "My Account"]
+        nav_buttons = ["Events", "Tickets", "My Account"]
         for button in nav_buttons:
             btn = tk.Button(header, text=button, bg=PRIMARY_COLOR, 
                           fg=ACCENT_COLOR, bd=0)
@@ -99,7 +99,7 @@ class TicketViewer:
 
         # Configure column headings and widths
         for col in columns:
-            self.tree.heading(col, text=col, command=lambda c=col: self.sort_tickets(c))
+            self.tree.heading(col, text=col, command=lambda c=col: self.sort_tickets(c ))
             width = 100 if col not in ["Name", "Event", "Location"] else 150
             self.tree.column(col, width=width)
 
@@ -169,7 +169,7 @@ class TicketViewer:
                 conn.commit()
                 conn.close()
 
-                messagebox.showinfo("Success", f" ticket deleted successfully.")
+                messagebox.showinfo("Success", f"Ticket deleted successfully.")
                 self.refresh_tickets()  # Refresh the list after deletion
 
             except sqlite3.Error as e:

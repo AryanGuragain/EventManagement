@@ -1,158 +1,292 @@
-# from tkinter import *
-# from tkinter import ttk
-
-# from Book import Book 
-# from CreateEvent import CreateEvent
-# from ViewTickets import ViewTickets
-# from ViewEvents import ViewEvents
-# from CancelTicket import CancelTicket
-
-# # Initialize main application window
-# top = Tk()
-# top.geometry('700x800')  # Start with a larger window size for big screens
-# top.title('Event Management')
-# top.configure(bg="#f4f4f9")  # Light background color for a more professional look
-
-# # Gradient Banner
-# banner_frame = Frame(top, bg="#4B0082", height=100)  # Dark Indigo gradient background
-# banner_frame.pack(fill=X, padx=0, pady=0)
-
-# # Title Label in the banner
-# Label(
-#     banner_frame,
-#     text="Event Management System", 
-#     bg="#4B0082",  # Dark Indigo background
-#     fg="white", 
-#     font=("Helvetica", 26, 'bold'), 
-#     width=50, 
-#     height=2
-# ).pack(pady=(20, 10))
-
-# # Frame for buttons
-# button_frame = Frame(top, bg="#f4f4f9")
-# button_frame.pack(pady=40, fill=BOTH, expand=True)
-
-# # Button Style
-# def create_button(text, command):
-#     return ttk.Button(button_frame, text=text, command=command, style='TButton')
-
-# # Button Style Configuration
-# style = ttk.Style()
-# style.configure('TButton',
-#                 font=('Helvetica', 14, 'bold'),
-#                 padding=15,
-#                 width=20,
-#                 anchor='center')
-
-# style.map('TButton', background=[('active', '#9932cc')], foreground=[('active', 'white')])  # Hover effect
-
-# # Grid Layout Configuration
-# button_frame.columnconfigure(0, weight=1)
-# button_frame.columnconfigure(1, weight=1)
-# button_frame.rowconfigure(0, weight=1)
-# button_frame.rowconfigure(1, weight=1)
-# button_frame.rowconfigure(2, weight=1)
-
-# # Create buttons with grid layout
-# create_button('Book Ticket', lambda: Book()).grid(row=0, column=0, padx=20, pady=20, sticky='ew')
-# create_button('Create Event', lambda: CreateEvent()).grid(row=0, column=1, padx=20, pady=20, sticky='ew')
-# create_button('View Tickets', lambda: ViewTickets()).grid(row=1, column=0, padx=20, pady=20, sticky='ew')
-# create_button('View Events', lambda: ViewEvents()).grid(row=1, column=1, padx=20, pady=20, sticky='ew')
-# create_button('Cancel Ticket', lambda: CancelTicket()).grid(row=2, column=0, padx=20, pady=20, sticky='ew')
-# create_button('Quit App', lambda: top.destroy()).grid(row=2, column=1, padx=20, pady=20, sticky='ew')
-
-# # Footer Label with professional design
-# Label(
-#     top,
-#     text="© 2023 Event Management Project | FOCP Designed by Aryan Guragain & Co.",
-#     bg="#f4f4f9",
-#     fg="#4B0082",  # Dark Indigo footer text
-#     font=("Helvetica", 10, 'italic')
-# ).pack(side=BOTTOM, pady=(20, 10))
-
-# # Make the window responsive
-# top.grid_rowconfigure(0, weight=1)
-# top.grid_rowconfigure(1, weight=1)
-# top.grid_rowconfigure(2, weight=1)
-
-# top.mainloop()
-from tkinter import *
+import tkinter as tk
 from tkinter import ttk
+import sqlite3
+from tkinter import messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from Book import Book 
-from CreateEvent import CreateEvent
-from ViewTickets import ViewTickets
-from ViewEvents import ViewEvents
-from CancelTicket import CancelTicket
+# Color Scheme
+PRIMARY_COLOR = "#2C3E50"  # Charcoal Blue
+SECONDARY_COLOR = "#34495E"  # Dark Slate Blue
+ACCENT_COLOR = "#ECF0F1"  # Light Cloud Gray
+BUTTON_COLOR = "#2980B9"  # Calm Blue
+TEXT_COLOR = "#2C3E50"  # Dark Charcoal
 
-# Initialize main application window
-top = Tk()
-top.geometry('700x800')  # Start with a larger window size for big screens
-top.title('Event Management')
-top.configure(bg="#f4f4f9")  # Light background color for a more professional look
+# Admin Credentials (hardcoded for simplicity)
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "root123"
 
-# Gradient Banner
-banner_frame = Frame(top, bg="#4B0082", height=100)  # Dark Indigo gradient background
-banner_frame.pack(fill=X, padx=0, pady=0)
+class AdminDashboard:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Admin Panel - Samaaye Events")
+        self.root.geometry("1200x800")
 
-# Title Label in the banner
-Label(
-    banner_frame,
-    text="Event Management System", 
-    bg="#4B0082",  # Dark Indigo background
-    fg="white", 
-    font=("Helvetica", 26, 'bold'), 
-    width=50, 
-    height=2
-).pack(pady=(20, 10))
+        # Database setup
+        self.setup_database()
 
-# Frame for buttons
-button_frame = Frame(top, bg="#f4f4f9")
-button_frame.pack(pady=40, fill=BOTH, expand=True)
+        # Create UI
+        self.create_header()
+        self.create_main_content()
+        self.display_total_tickets()
 
-# Button Style
-def create_button(text, command):
-    return ttk.Button(button_frame, text=text, command=command, style='TButton')
+    def setup_database(self):
+        """Ensure the database and table exist."""
+        conn = sqlite3.connect('samaaye_events.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS bookings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                mobile TEXT NOT NULL,
+                event_title TEXT NOT NULL,
+                event_date TEXT NOT NULL,
+                event_time TEXT NOT NULL,
+                event_location TEXT NOT NULL,
+                ticket_quantity INTEGER NOT NULL,
+                total_price REAL NOT NULL,
+                booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.commit()
+        conn.close()
 
-# Button Style Configuration
-style = ttk.Style()
-style.configure('TButton',
-                font=('Helvetica', 14, 'bold'),
-                padding=15,
-                width=20,
-                anchor='center')
+    def create_header(self):
+            """Create the header section."""
+            header = tk.Frame(self.root, bg=PRIMARY_COLOR)
+            header.pack(fill="x")
 
-style.map('TButton', background=[('active', '#9932cc')], foreground=[('active', 'white')])  # Hover effect
+            title = tk.Label(header, text="Admin Dashboard - Samaaye Events", 
+                         font=("Arial", 20, "bold"), bg=PRIMARY_COLOR, fg=ACCENT_COLOR)
+            title.pack(pady=20)
 
-# Grid Layout Configuration
-button_frame.columnconfigure(0, weight=1)
-button_frame.columnconfigure(1, weight=1)
-button_frame.rowconfigure(0, weight=1)
-button_frame.rowconfigure(1, weight=1)
-button_frame.rowconfigure(2, weight=1)
-button_frame.rowconfigure(3, weight=1)  # Added an extra row for the new button
+    def create_main_content(self):
+        """Create the main content area."""
+        main_frame = tk.Frame(self.root, bg=ACCENT_COLOR)
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-# Create buttons with grid layout
-create_button('Book Ticket', lambda: Book()).grid(row=0, column=0, padx=20, pady=20, sticky='ew')
-create_button('Create Event', lambda: CreateEvent()).grid(row=0, column=1, padx=20, pady=20, sticky='ew')
-create_button('View Tickets', lambda: ViewTickets()).grid(row=1, column=0, padx=20, pady=20, sticky='ew')
-create_button('View Events', lambda: ViewEvents()).grid(row=1, column=1, padx=20, pady=20, sticky='ew')
-create_button('Cancel Ticket', lambda: CancelTicket()).grid(row=2, column=0, padx=20, pady=20, sticky='ew')
-create_button('Show Graph', lambda: ShowGraph()).grid(row=3, column=0, columnspan=2, padx=20, pady=20, sticky='ew')  # New button for graph
-create_button('Quit App', lambda: top.destroy()).grid(row=2, column=1, padx=20, pady=20, sticky='ew')
+        # Left Frame for Stats
+        right_frame = tk.Frame(main_frame, bg="skyblue", width=300)
+        right_frame.pack(side="right", fill="y", padx=10, pady=10)
 
-# Footer Label with professional design
-Label(
-    top,
-    text="© 2023 Event Management Project | FOCP Designed by Aryan Guragain & Co.",
-    bg="#f4f4f9",
-    fg="#4B0082",  # Dark Indigo footer text
-    font=("Helvetica", 10, 'italic')
-).pack(side=BOTTOM, pady=(20, 10))
+        left_frame = tk.Frame(main_frame, bg="skyblue", width=300)
+        left_frame.pack(side="left", fill="y", padx=10, pady=10)
 
-# Make the window responsive
-top.grid_rowconfigure(0, weight=1)
-top.grid_rowconfigure(1, weight=1)
-top.grid_rowconfigure(2, weight=1)
+        # Total tickets sold
+        self.total_tickets_label = tk.Label(right_frame, text="Total Tickets Sold:\n0", 
+                                        font=("Arial", 16, "bold"), bg="skyblue", 
+                                        fg=ACCENT_COLOR, justify="center")
+        self.total_tickets_label.pack(pady=20)
 
-top.mainloop()
+        # Revenue
+        self.net_sales_label = tk.Label(left_frame, text="Total Revenue (Rs):\n0.00", 
+                                    font=("Arial", 16, "bold"), bg="skyblue", 
+                                    fg=ACCENT_COLOR, justify="center")
+        self.net_sales_label.pack(pady=20)
+
+        # View Tickets Info Button
+        view_tickets_btn = tk.Button(left_frame, text="View Tickets Info", 
+                                     bg=BUTTON_COLOR, fg=ACCENT_COLOR, font=("Arial", 12),
+                                     command=self.view_tickets_info)
+        view_tickets_btn.pack(pady=20)
+
+        # Graph Frame (moved to the top right)
+        self.graph_frame = tk.Frame(main_frame, bg=ACCENT_COLOR)
+        self.graph_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
+
+        # Show the pie chart immediately
+        self.show_ticket_sales_graph()
+
+
+    def display_total_tickets(self):
+        """Display total tickets sold and net sales."""
+        try:
+            conn = sqlite3.connect('samaaye_events.db')
+            cursor = conn.cursor()
+
+            # Total Tickets
+            cursor.execute('SELECT SUM(ticket_quantity) FROM bookings')
+            total_tickets = cursor.fetchone()[0] or 0
+            self.total_tickets_label.config(text=f"Total Tickets Sold:\n{total_tickets}")
+
+            # Total Revenue
+            cursor.execute('SELECT SUM(total_price) FROM bookings')
+            net_sales = cursor.fetchone()[0] or 0.00
+            self.net_sales_label.config(text=f"Total Revenue (Rs):\n{net_sales:.2f}")
+
+            conn.close()
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error fetching data: {str(e)}")
+
+    def show_ticket_sales_graph(self):
+        """Display a pie chart of net sales by event with total money and percentage."""
+        try:
+            conn = sqlite3.connect('samaaye_events.db')
+            cursor = conn.cursor()
+
+            # Get sales data grouped by event title
+            cursor.execute('''
+                SELECT event_title, SUM(total_price) AS net_sales
+                FROM bookings
+                GROUP BY event_title
+                ORDER BY net_sales DESC
+            ''')
+            data = cursor.fetchall()
+            conn.close()
+
+            if not data:
+                messagebox.showinfo("No Data", "No sales data available.")
+                return
+
+            # Extract data for plotting
+            event_titles = [row[0] for row in data]
+            net_sales = [row[1] for row in data]
+
+            # Create labels with event titles, total money, and percentage
+            total_sales = sum(net_sales)
+            labels = [
+                f"{title}\nRs {sales:.2f} ({(sales / total_sales) * 100:.1f}%)"
+                for title, sales in zip(event_titles, net_sales)
+            ]
+
+            # Create a matplotlib figure
+            fig = Figure(figsize=(4, 2), dpi=70)
+            ax = fig.add_subplot(111)
+
+        # Plot pie chart
+            ax.pie(
+                net_sales,
+                labels=labels,
+                autopct=None,  # Disable autopct since we include percentages manually
+                startangle=90,
+                colors=['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd'],
+            )
+            ax.set_title("Net Sales by Event (Rs)", fontsize=16, weight='bold')
+
+            # Clear previous graph if any
+            for widget in self.graph_frame.winfo_children():
+                widget.destroy()
+
+        # Embed the graph in Tkinter
+            canvas = FigureCanvasTkAgg(fig, master=self.graph_frame)
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill="both", expand=True)
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error fetching sales data: {str(e)}")
+
+
+    def view_tickets_info(self):
+        """Display information about who purchased which tickets with price."""
+        top = tk.Toplevel(self.root)
+        top.title("Tickets Info")
+        top.geometry("900x500")
+
+        # Treeview for displaying data
+        tree = ttk.Treeview(top, columns=("ID", "Name", "Mobile", "Event Title", 
+                                          "Tickets", "Price"), show="headings")
+        tree.heading("ID", text="ID")
+        tree.heading("Name", text="Name")
+        tree.heading("Mobile", text="Mobile")
+        tree.heading("Event Title", text="Event Title")
+        tree.heading("Tickets", text="Tickets")
+        tree.heading("Price", text="Price (Rs)")
+        tree.pack(fill="both", expand=True, padx=10, pady=10)
+
+        try:
+            conn = sqlite3.connect('samaaye_events.db')
+            cursor = conn.cursor()
+
+            cursor.execute('''
+                SELECT id, name, mobile, event_title, ticket_quantity, total_price 
+                FROM bookings
+            ''')
+            data = cursor.fetchall()
+            conn.close()
+
+            # Insert data into Treeview
+            for row in data:
+                tree.insert("", "end", values=row)
+
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error fetching tickets data: {str(e)}")
+
+        # Delete Ticket Button
+        delete_btn = tk.Button(top, text="Delete Selected Ticket", bg="red", fg="white", font=("Arial", 12),
+                               command=lambda: self.delete_ticket(tree))
+        delete_btn.pack(pady=10)
+
+    def delete_ticket(self, tree):
+        """Delete the selected ticket."""
+        selected_item = tree.selection()
+        if not selected_item:
+            messagebox.showerror("No Selection", "Please select a ticket to delete.")
+            return
+
+        ticket_id = tree.item(selected_item, "values")[0]
+        try:
+            conn = sqlite3.connect('samaaye_events.db')
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM bookings WHERE id = ?', (ticket_id,))
+            conn.commit()
+            conn.close()
+            tree.delete(selected_item)
+            messagebox.showinfo("Success", "Ticket deleted successfully.")
+            self.display_total_tickets()  # Refresh stats
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error deleting ticket: {str(e)}")
+
+class LoginScreen:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Admin Login - Samaaye Events")
+        self.root.geometry("400x300")
+        self.create_login_ui()
+
+    def create_login_ui(self):
+    # Frame with light blue background
+        frame = tk.Frame(self.root, bg="skyblue")
+        frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        # Admin Login Title
+        tk.Label(frame, text="Admin Login", font=("Arial", 20, "bold"), bg="skyblue", fg=ACCENT_COLOR).grid(row=0, column=0, columnspan=2, pady=20)
+
+        # Username Label and Entry
+        tk.Label(frame, text="Username:", font=("Arial", 14), bg="skyblue", fg=ACCENT_COLOR).grid(row=1, column=0, sticky="w", padx=10, pady=5)
+        self.username_entry = tk.Entry(frame, font=("Arial", 14))
+        self.username_entry.grid(row=1, column=1, pady=5, padx=10, sticky="ew")
+
+        # Password Label and Entry
+        tk.Label(frame, text="Password:", font=("Arial", 14), bg="skyblue", fg=ACCENT_COLOR).grid(row=2, column=0, sticky="w", padx=10, pady=5)
+        self.password_entry = tk.Entry(frame, font=("Arial", 14), show="*")
+        self.password_entry.grid(row=2, column=1, pady=5, padx=10, sticky="ew")
+
+        # Add weight to columns for auto layout
+        frame.grid_columnconfigure(1, weight=1)
+
+        # Login Button
+        login_btn = tk.Button(frame, text="Login", bg=BUTTON_COLOR, fg=ACCENT_COLOR, font=("Arial", 14), command=self.login)
+        login_btn.grid(row=3, column=0, columnspan=2, pady=20, padx=10)
+
+        # Bind hover events for the button
+        login_btn.bind("<Enter>", lambda e: login_btn.config(bg="darkblue", fg="white"))
+        login_btn.bind("<Leave>", lambda e: login_btn.config(bg=BUTTON_COLOR, fg=ACCENT_COLOR))
+
+    def login(self):
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+
+        if username == "admin" and password == "root123":
+            self.root.destroy()
+            main()
+        else:
+            messagebox.showerror("Login Failed", "Invalid username or password.")
+
+def main():
+    root = tk.Tk()
+    app = AdminDashboard(root)
+    root.mainloop()
+
+if __name__ == "__main__":
+    login_root = tk.Tk()
+    LoginScreen(login_root)
+    login_root.mainloop()

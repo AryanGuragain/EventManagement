@@ -4,6 +4,7 @@ import sqlite3
 from tkinter import messagebox
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import subprocess
 
 # Color Scheme
 PRIMARY_COLOR = "#2C3E50"  # Charcoal Blue
@@ -344,8 +345,10 @@ class AdminDashboard:
 
     def add_event(self):
         """Handle adding an event."""
-        # Implement the logic to add an event
-        messagebox.showinfo("Add Event", "Add Event functionality not implemented yet.")
+        try:
+            subprocess.Popen(["python", "CreateEvent.py"])
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open CreateEvent.py: {str(e)}")
 
     def edit_event(self):
         """Handle editing an event."""

@@ -4,6 +4,7 @@ import sqlite3
 from tkinter import messagebox
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import subprocess
 
 # Color Scheme
 PRIMARY_COLOR = "#2C3E50"  # Charcoal Blue
@@ -170,9 +171,139 @@ class AdminDashboard:
         except sqlite3.Error as e:
             messagebox.showerror("Database Error", f"Error fetching sales data: {str(e)}")
 
-    # Rest of the methods remain the same...
-    # (show_booking_line_graph, display_total_tickets, display_event_tickets, 
-    #  view_tickets_info, delete_ticket, add_event, edit_event, delete_event)
+    def show_booking_line_graph(self):
+        """Display a line graph showing the number of tickets booked up to date for different events."""
+        try:
+            conn = sqlite3.connect('samaaye_events.db')
+            cursor = conn.cursor()
+
+            # Get booking data grouped by event title and date
+            cursor.execute('''
+                SELECT event_title, booking_date, SUM(ticket_quantity) AS total_tickets
+                FROM bookings
+                GROUP BY event_title, booking_date
+                ORDER BY booking_date ASC
+            ''')
+            data = cursor.fetchall()
+            conn.close()
+
+            if not data:
+                messagebox.showinfo("No Data", "No booking data available.")
+                return
+
+            # Prepare data for plotting
+            event_dates = sorted(set(row[1][:10] for row in data)) # Extract and sort unique dates
+            events = sorted(set(row[0] for row in data))  # Extract and sort unique events
+            cumulative_tickets = {event: [0] * len(event_dates) for event in events}
+
+            # Calculate cumulative tickets for each event
+            for row in data:
+                event_title, booking_date, total_tickets = row
+                date_index = event_dates.index(booking_date[:10])
+                for i in range(date_index, len(event_dates)):
+                    cumulative_tickets[event_title][i] += total_tickets
+
+            # Create a matplotlib figure
+            fig = Figure(figsize=(5, 5), dpi=70)
+            ax = fig.add_subplot(111)
+
+            # Plot line graph for each event
+            for event in events:
+                ax.plot(event_dates, cumulative_tickets[event], marker='o', linestyle='-', label=event)
+
+            ax.set_title("Cumulative Tickets Booked Over Time", fontsize=16, weight='bold')
+            ax.set_xlabel("Booking Date")
+            ax.set_ylabel("Total Tickets")
+            ax.legend()
+
+            # Clear previous graph if any
+            for widget in self.line_graph_frame.winfo_children():
+                widget.destroy()
+
+            # Embed the graph in Tkinter
+            canvas = FigureCanvasTkAgg(fig, master=self.line_graph_frame)
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill="both", expand=True)
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error fetching booking data: {str(e)}")
+
+    def view_tickets_info(self):
+        """Display information about who purchased which tickets with price."""
+        top = tk.Toplevel(self.root)
+        top.title("Tickets Info")
+        top.geometry("900x500")
+
+        # Treeview for displaying data
+        tree = ttk.Treeview(top, columns=("ID", "Name", "Mobile", "Event Title", 
+                                          "Tickets", "Price"), show="headings")
+        tree.heading("ID", text="ID")
+        tree.heading("Name", text="Name")
+        tree.heading("Mobile", text="Mobile")
+        tree.heading("Event Title", text="Event Title")
+        tree.heading("Tickets", text="Tickets")
+        tree.heading("Price", text="Price (Rs)")
+        tree.pack(fill="both", expand=True, padx=10, pady=10)
+
+        try:
+            conn = sqlite3.connect('samaaye_events.db')
+            cursor = conn.cursor()
+
+            cursor.execute('''
+                SELECT id, name, mobile, event_title, ticket_quantity, total_price 
+                FROM bookings
+            ''')
+            data = cursor.fetchall()
+            conn.close()
+
+            # Insert data into Treeview
+            for row in data:
+                tree.insert("", "end", values=row)
+
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error fetching tickets data: {str(e)}")
+
+        # Delete Ticket Button
+        delete_btn = tk.Button(top, text="Delete Selected Ticket", bg="red", fg="white", font=("Helvetica", 12),
+                               command=lambda: self.delete_ticket(tree))
+        delete_btn.pack(pady=10)
+
+    def delete_ticket(self, tree):
+        """Delete the selected ticket."""
+        selected_item = tree.selection()
+        if not selected_item:
+            messagebox.showerror("No Selection", "Please select a ticket to delete.")
+            return
+
+        ticket_id = tree.item(selected_item, "values")[0]
+        try:
+            conn = sqlite3.connect('samaaye_events.db')
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM bookings WHERE id = ?', (ticket_id,))
+            conn.commit()
+            conn.close()
+            tree.delete(selected_item)
+            messagebox.showinfo("Success", "Ticket deleted successfully.")
+            self.display_total_tickets()  # Refresh stats
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error deleting ticket: {str(e)}")
+
+    def add_event(self):
+        """Handle adding an event."""
+        try:
+            subprocess.Popen(["python", "CreateEvent.py"])
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open CreateEvent.py: {str(e)}")
+
+    def edit_event(self):
+        """Handle editing an event."""
+        # Implement the logic to edit an event
+        messagebox.showinfo("Edit Event", "Edit Event functionality not implemented yet.")
+
+    def delete_event(self):
+        """Handle deleting an event."""
+        # Implement the logic to delete an event
+        messagebox.showinfo("Delete Event", "Delete Event functionality not implemented yet.")
+
 
 class LoginScreen:
     def __init__(self, root):

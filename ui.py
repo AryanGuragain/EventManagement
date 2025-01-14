@@ -90,12 +90,7 @@ def create_event_card(parent, event):
 
 # Function to calculate the number of columns based on the screen size
 def get_number_of_columns():
-    screen_width = root.winfo_width()
-    if screen_width >= 1200:
-        return 3
-    elif screen_width >= 800:
-        return 2
-    return 1
+    return 3
 
 # Function to update the layout of event cards
 def update_event_cards(event=None):
@@ -103,6 +98,7 @@ def update_event_cards(event=None):
         widget.destroy()
 
     num_columns = get_number_of_columns()
+    num_rows = 3  # Set the number of rows to 3
     for i, event in enumerate(events):
         row, column = divmod(i, num_columns)
         card = create_event_card(container, event)
@@ -119,8 +115,10 @@ try:
         root.state('zoomed')
     elif platform.system() == "Darwin":
         root.attributes('-fullscreen', True)
-    else:
-        root.state('zoomed')
+    elif platform.system() == "Linux":
+        root.state('normal')  # or you can use root.attributes('-zoomed', True) if supported
+        root.attributes('-fullscreen', False)  # Ensure it's not in fullscreen
+        root.geometry("1200x800")  # Set a default size for Linux
 
     root.configure(bg=ACCENT_COLOR)
 
@@ -153,7 +151,8 @@ try:
         {"title": "Nepal Premier League", "date": "19 Dec", "time": "9:15 AM onwards", "location": "TU Cricket Ground",
          "image": os.path.join(os.path.dirname(__file__), "npl.png"), "ticket_price": 750, "available_tickets": 250},
         {"title": "Grasslands Carnival", "date": "5 Dec", "time": "4:30 PM onwards", "location": "Patan Durbar Square",
-         "image": os.path.join(os.path.dirname(__file__), "grass.jpg"), "ticket_price": 350, "available_tickets": 75}
+         "image": os.path.join(os.path.dirname(__file__), "grass.jpg"), "ticket_price": 350, "available_tickets": 75},
+        # Add more events if needed to fill 3 rows and 3 columns
     ]
 
     update_event_cards()

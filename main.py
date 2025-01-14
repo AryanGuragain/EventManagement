@@ -4,6 +4,7 @@ import sqlite3
 from tkinter import messagebox
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import subprocess
 
 # Color Scheme
 PRIMARY_COLOR = "#2C3E50"  # Charcoal Blue
@@ -21,6 +22,7 @@ class AdminDashboard:
         self.root = root
         self.root.title("Admin Panel - Samaaye Events")
         self.root.geometry("1200x800")
+        self.root.configure(bg=ACCENT_COLOR)
 
         # Database setup
         self.setup_database()
@@ -29,6 +31,7 @@ class AdminDashboard:
         self.create_header()
         self.create_main_content()
         self.display_total_tickets()
+        self.display_event_tickets()
 
     def setup_database(self):
         """Ensure the database and table exist."""
@@ -52,51 +55,70 @@ class AdminDashboard:
         conn.close()
 
     def create_header(self):
-            """Create the header section."""
-            header = tk.Frame(self.root, bg=PRIMARY_COLOR)
-            header.pack(fill="x")
+        """Create the header section."""
+        header = tk.Frame(self.root, bg=PRIMARY_COLOR)
+        header.pack(fill="x")
 
-            title = tk.Label(header, text="Admin Dashboard - Samaaye Events", 
-                         font=("Arial", 20, "bold"), bg=PRIMARY_COLOR, fg=ACCENT_COLOR)
-            title.pack(pady=20)
+        title = tk.Label(header, text="Admin Dashboard - Samaaye Events", 
+                         font=("Helvetica", 24, "bold"), bg=PRIMARY_COLOR, fg=ACCENT_COLOR)
+        title.pack(pady=20)
 
     def create_main_content(self):
         """Create the main content area."""
         main_frame = tk.Frame(self.root, bg=ACCENT_COLOR)
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        # Left Frame for Stats
-        right_frame = tk.Frame(main_frame, bg="skyblue", width=300)
-        right_frame.pack(side="right", fill="y", padx=10, pady=10)
+        # Grid configuration to allocate space
+        main_frame.grid_rowconfigure(0, weight=3)  # 50% height for graphs
+        main_frame.grid_rowconfigure(1, weight=1)  # 50% height for stats
+        main_frame.grid_columnconfigure(0, weight=1)  # 50% width for pie chart
+        main_frame.grid_columnconfigure(1, weight=1)  # 50% width for line chart
+        main_frame.grid_columnconfigure(2, weight=0)  # Added column for stats
 
-        left_frame = tk.Frame(main_frame, bg="skyblue", width=300)
-        left_frame.pack(side="left", fill="y", padx=10, pady=10)
+        # Pie Chart Frame
+        self.pie_chart_frame = tk.Frame(main_frame, bg=ACCENT_COLOR)
+        self.pie_chart_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
-        # Total tickets sold
-        self.total_tickets_label = tk.Label(right_frame, text="Total Tickets Sold:\n0", 
-                                        font=("Arial", 16, "bold"), bg="skyblue", 
-                                        fg=ACCENT_COLOR, justify="center")
-        self.total_tickets_label.pack(pady=20)
+        # Line Graph Frame
+        self.line_graph_frame = tk.Frame(main_frame, bg=ACCENT_COLOR)
+        self.line_graph_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
 
-        # Revenue
-        self.net_sales_label = tk.Label(left_frame, text="Total Revenue (Rs):\n0.00", 
-                                    font=("Arial", 16, "bold"), bg="skyblue", 
-                                    fg=ACCENT_COLOR, justify="center")
-        self.net_sales_label.pack(pady=20)
+        # Stats Frame (right side)
+        self.stats_frame = tk.Frame(main_frame, bg=ACCENT_COLOR)
+        self.stats_frame.grid(row=0, column=2, rowspan=2, sticky="nsew", padx=5, pady=5)
 
-        # View Tickets Info Button
-        view_tickets_btn = tk.Button(left_frame, text="View Tickets Info", 
-                                     bg=BUTTON_COLOR, fg=ACCENT_COLOR, font=("Arial", 12),
-                                     command=self.view_tickets_info)
-        view_tickets_btn.pack(pady=20)
+        # Revenue (right aligned)
+        self.net_sales_label = tk.Label(self.stats_frame, text="Total Revenue (Rs):\n0.00", 
+                                        font=("Helvetica", 18, "bold"), bg=ACCENT_COLOR, 
+                                        fg=PRIMARY_COLOR, justify="left")
+        self.net_sales_label.pack(pady=20, padx=10, anchor="nw")
 
-        # Graph Frame (moved to the top right)
-        self.graph_frame = tk.Frame(main_frame, bg=ACCENT_COLOR)
-        self.graph_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
+        # Total Tickets Sold Label
+        self.total_tickets_label = tk.Label(self.stats_frame, text="Total Tickets Sold:\n0", 
+                                            font=("Helvetica", 18, "bold"), bg=ACCENT_COLOR, 
+                                            fg=PRIMARY_COLOR, justify="left")
+        self.total_tickets_label.pack(pady=20, padx=10, anchor="nw")
 
-        # Show the pie chart immediately
+        # Event Tickets Frame (right side, below the stats labels)
+        self.event_tickets_frame = tk.Frame(self.stats_frame, bg=ACCENT_COLOR)
+        self.event_tickets_frame.pack(fill="both", expand=True, padx=5, pady=5)
+
+        # Buttons Frame (below the event tickets frame)
+        buttons_frame = tk.Frame(self.stats_frame, bg=ACCENT_COLOR)
+        buttons_frame.pack(fill="both", expand=True, padx=5, pady=5)
+
+        add_event_button = tk.Button(buttons_frame, text="Add Event", bg=BUTTON_COLOR, fg=ACCENT_COLOR, font=("Helvetica", 14), command=self.add_event)
+        add_event_button.pack(fill="x", padx=10, pady=(10, 5))
+
+        edit_event_button = tk.Button(buttons_frame, text="Edit Event", bg=BUTTON_COLOR, fg=ACCENT_COLOR, font=("Helvetica", 14), command=self.edit_event)
+        edit_event_button.pack(fill="x", padx=10, pady=5)
+
+        delete_event_button = tk.Button(buttons_frame, text="Delete Event", bg=BUTTON_COLOR, fg=ACCENT_COLOR, font=("Helvetica", 14), command=self.delete_event)
+        delete_event_button.pack(fill="x", padx=10, pady=(5, 10))
+
+        # Show the graphs immediately
         self.show_ticket_sales_graph()
-
+        self.show_booking_line_graph()
 
     def display_total_tickets(self):
         """Display total tickets sold and net sales."""
@@ -117,6 +139,37 @@ class AdminDashboard:
             conn.close()
         except sqlite3.Error as e:
             messagebox.showerror("Database Error", f"Error fetching data: {str(e)}")
+
+    def display_event_tickets(self):
+        """Display the number of tickets sold for individual events."""
+        try:
+            conn = sqlite3.connect('samaaye_events.db')
+            cursor = conn.cursor()
+
+            # Get tickets data grouped by event title
+            cursor.execute('''
+                SELECT event_title, SUM(ticket_quantity) AS total_tickets
+                FROM bookings
+                GROUP BY event_title
+                ORDER BY event_title ASC
+            ''')
+            data = cursor.fetchall()
+            conn.close()
+
+            if not data:
+                messagebox.showinfo("No Data", "No booking data available.")
+                return
+
+            # Display the event tickets information
+            tk.Label(self.event_tickets_frame, text="Tickets Sold by Event", 
+                     font=("Helvetica", 16, "bold"), bg=ACCENT_COLOR, fg=PRIMARY_COLOR, anchor="w").pack(pady=10, fill="x")
+            for row in data:
+                event_label = tk.Label(self.event_tickets_frame, text=f"{row[0]}: {row[1]} tickets", 
+                                       font=("Helvetica", 14), bg=ACCENT_COLOR, fg=PRIMARY_COLOR, anchor="w")
+                event_label.pack(anchor="w", fill="x")
+
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error fetching event tickets data: {str(e)}")
 
     def show_ticket_sales_graph(self):
         """Display a pie chart of net sales by event with total money and percentage."""
@@ -150,10 +203,10 @@ class AdminDashboard:
             ]
 
             # Create a matplotlib figure
-            fig = Figure(figsize=(4, 2), dpi=70)
+            fig = Figure(figsize=(5, 5), dpi=70)
             ax = fig.add_subplot(111)
 
-        # Plot pie chart
+            # Plot pie chart
             ax.pie(
                 net_sales,
                 labels=labels,
@@ -164,16 +217,71 @@ class AdminDashboard:
             ax.set_title("Net Sales by Event (Rs)", fontsize=16, weight='bold')
 
             # Clear previous graph if any
-            for widget in self.graph_frame.winfo_children():
+            for widget in self.pie_chart_frame.winfo_children():
                 widget.destroy()
 
-        # Embed the graph in Tkinter
-            canvas = FigureCanvasTkAgg(fig, master=self.graph_frame)
+            # Embed the graph in Tkinter
+            canvas = FigureCanvasTkAgg(fig, master=self.pie_chart_frame)
             canvas.draw()
             canvas.get_tk_widget().pack(fill="both", expand=True)
         except sqlite3.Error as e:
             messagebox.showerror("Database Error", f"Error fetching sales data: {str(e)}")
 
+    def show_booking_line_graph(self):
+        """Display a line graph showing the number of tickets booked up to date for different events."""
+        try:
+            conn = sqlite3.connect('samaaye_events.db')
+            cursor = conn.cursor()
+
+            # Get booking data grouped by event title and date
+            cursor.execute('''
+                SELECT event_title, booking_date, SUM(ticket_quantity) AS total_tickets
+                FROM bookings
+                GROUP BY event_title, booking_date
+                ORDER BY booking_date ASC
+            ''')
+            data = cursor.fetchall()
+            conn.close()
+
+            if not data:
+                messagebox.showinfo("No Data", "No booking data available.")
+                return
+
+            # Prepare data for plotting
+            event_dates = sorted(set(row[1][:10] for row in data)) # Extract and sort unique dates
+            events = sorted(set(row[0] for row in data))  # Extract and sort unique events
+            cumulative_tickets = {event: [0] * len(event_dates) for event in events}
+
+            # Calculate cumulative tickets for each event
+            for row in data:
+                event_title, booking_date, total_tickets = row
+                date_index = event_dates.index(booking_date[:10])
+                for i in range(date_index, len(event_dates)):
+                    cumulative_tickets[event_title][i] += total_tickets
+
+            # Create a matplotlib figure
+            fig = Figure(figsize=(5, 5), dpi=70)
+            ax = fig.add_subplot(111)
+
+            # Plot line graph for each event
+            for event in events:
+                ax.plot(event_dates, cumulative_tickets[event], marker='o', linestyle='-', label=event)
+
+            ax.set_title("Cumulative Tickets Booked Over Time", fontsize=16, weight='bold')
+            ax.set_xlabel("Booking Date")
+            ax.set_ylabel("Total Tickets")
+            ax.legend()
+
+            # Clear previous graph if any
+            for widget in self.line_graph_frame.winfo_children():
+                widget.destroy()
+
+            # Embed the graph in Tkinter
+            canvas = FigureCanvasTkAgg(fig, master=self.line_graph_frame)
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill="both", expand=True)
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error fetching booking data: {str(e)}")
 
     def view_tickets_info(self):
         """Display information about who purchased which tickets with price."""
@@ -211,7 +319,7 @@ class AdminDashboard:
             messagebox.showerror("Database Error", f"Error fetching tickets data: {str(e)}")
 
         # Delete Ticket Button
-        delete_btn = tk.Button(top, text="Delete Selected Ticket", bg="red", fg="white", font=("Arial", 12),
+        delete_btn = tk.Button(top, text="Delete Selected Ticket", bg="red", fg="white", font=("Helvetica", 12),
                                command=lambda: self.delete_ticket(tree))
         delete_btn.pack(pady=10)
 
@@ -235,47 +343,66 @@ class AdminDashboard:
         except sqlite3.Error as e:
             messagebox.showerror("Database Error", f"Error deleting ticket: {str(e)}")
 
+    def add_event(self):
+        """Handle adding an event."""
+        try:
+            subprocess.Popen(["python", "CreateEvent.py"])
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open CreateEvent.py: {str(e)}")
+
+    def edit_event(self):
+        """Handle editing an event."""
+        # Implement the logic to edit an event
+        messagebox.showinfo("Edit Event", "Edit Event functionality not implemented yet.")
+
+    def delete_event(self):
+        """Handle deleting an event."""
+        # Implement the logic to delete an event
+        messagebox.showinfo("Delete Event", "Delete Event functionality not implemented yet.")
+
 class LoginScreen:
     def __init__(self, root):
         self.root = root
         self.root.title("Admin Login - Samaaye Events")
         self.root.geometry("400x300")
+        self.root.configure(bg="skyblue")
         self.create_login_ui()
 
     def create_login_ui(self):
-    # Frame with light blue background
+        # Frame with light blue background
         frame = tk.Frame(self.root, bg="skyblue")
         frame.pack(fill="both", expand=True, padx=20, pady=20)
 
         # Admin Login Title
-        tk.Label(frame, text="Admin Login", font=("Arial", 20, "bold"), bg="skyblue", fg=ACCENT_COLOR).grid(row=0, column=0, columnspan=2, pady=20)
+        tk.Label(frame, text="Admin Login", font=("Helvetica", 24, "bold"), bg="skyblue", fg=ACCENT_COLOR).grid(row=0, column=0, columnspan=2, pady=20)
 
         # Username Label and Entry
-        tk.Label(frame, text="Username:", font=("Arial", 14), bg="skyblue", fg=ACCENT_COLOR).grid(row=1, column=0, sticky="w", padx=10, pady=5)
-        self.username_entry = tk.Entry(frame, font=("Arial", 14))
+        tk.Label(frame, text="Username:", font=("Helvetica ", 14), bg="skyblue", fg=ACCENT_COLOR).grid(row=1, column=0, sticky="w", padx=10, pady=5)
+        self.username_entry = tk.Entry(frame, font=("Helvetica", 14))
         self.username_entry.grid(row=1, column=1, pady=5, padx=10, sticky="ew")
 
         # Password Label and Entry
-        tk.Label(frame, text="Password:", font=("Arial", 14), bg="skyblue", fg=ACCENT_COLOR).grid(row=2, column=0, sticky="w", padx=10, pady=5)
-        self.password_entry = tk.Entry(frame, font=("Arial", 14), show="*")
+        tk.Label(frame, text="Password:", font=("Helvetica", 14), bg="skyblue", fg=ACCENT_COLOR).grid(row=2, column=0, sticky="w", padx=10, pady=5)
+        self.password_entry = tk.Entry(frame, font=("Helvetica", 14), show="*")
         self.password_entry.grid(row=2, column=1, pady=5, padx=10, sticky="ew")
 
         # Add weight to columns for auto layout
         frame.grid_columnconfigure(1, weight=1)
 
         # Login Button
-        login_btn = tk.Button(frame, text="Login", bg=BUTTON_COLOR, fg=ACCENT_COLOR, font=("Arial", 14), command=self.login)
+        login_btn = tk.Button(frame, text="Login", bg=BUTTON_COLOR, fg=ACCENT_COLOR, font=("Helvetica", 14), command=self.login)
         login_btn.grid(row=3, column=0, columnspan=2, pady=20, padx=10)
-
-        # Bind hover events for the button
         login_btn.bind("<Enter>", lambda e: login_btn.config(bg="darkblue", fg="white"))
         login_btn.bind("<Leave>", lambda e: login_btn.config(bg=BUTTON_COLOR, fg=ACCENT_COLOR))
+
+        # Bind the Enter key to the login function
+        self.root.bind('<Return>', lambda event: self.login())
 
     def login(self):
         username = self.username_entry.get()
         password = self.password_entry.get()
 
-        if username == "admin" and password == "root123":
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             self.root.destroy()
             main()
         else:

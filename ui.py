@@ -167,11 +167,11 @@ try:
         {"title": "Grasslands Carnival", "date": "5 Dec", "time": "4:30 PM onwards", "location": "Patan Durbar Square",
          "image": os.path.join(os.path.dirname(__file__), "grass.jpg"), "ticket_price": 350, "available_tickets": 75},
         {"title": "Rock Festival", "date": "10 Dec", "time": "5:00 PM onwards", "location": "City Center",
-         "image": os.path.join(os.path.dirname(__file__), "npl.png"), "ticket_price": 600, "available_tickets": 150},
+         "image": os.path.join(os.path.dirname(__file__), "images.jpeg"), "ticket_price": 600, "available_tickets": 150},
         {"title": "Tech Conference 2025", "date": "23 Dec", "time": "9:00 AM onwards", "location": "Kathmandu",
-         "image": os.path.join(os.path.dirname(__file__), "npl.png"), "ticket_price": 800, "available_tickets": 200},
+         "image": os.path.join(os.path.dirname(__file__), "maxresdefault.png"), "ticket_price": 800, "available_tickets": 200},
         {"title": "New Year's Eve Party", "date": "31 Dec", "time": "10:00 PM onwards", "location": "City Hall",
-         "image": os.path.join(os.path.dirname(__file__), "npl.png"), "ticket_price": 1200, "available_tickets": 500},
+         "image": os.path.join(os.path.dirname(__file__), "TentCardversion.png"), "ticket_price": 1200, "available_tickets": 500},
     ]
 
     update_event_cards()  # Initial render of events

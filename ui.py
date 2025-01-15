@@ -67,28 +67,6 @@ def handle_menu_click(item):
     else:
         messagebox.showinfo("Info", f"{item} menu item clicked!")
 
-# Function to calculate the number of columns based on the window width
-def get_number_of_columns():
-    screen_width = root.winfo_width()
-    if screen_width >= 1200:
-        return 3
-    elif screen_width >= 800:
-        return 2
-    return 1
-
-# Function to update event cards
-def update_event_cards():
-    for widget in container.winfo_children():
-        widget.destroy()
-
-    num_columns = get_number_of_columns()
-    for i, event in enumerate(events):
-        row, column = divmod(i, num_columns)
-        card = create_event_card(container, event)
-        card.grid(row=row, column=column, padx=15, pady=20, sticky="nsew")
-        container.grid_columnconfigure(column, weight=1)
-        container.grid_rowconfigure(row, weight=1)
-
 # Function to create an event card
 def create_event_card(parent, event):
     card = tk.Frame(parent, bg="white", relief=tk.FLAT, borderwidth=1,
@@ -109,25 +87,25 @@ def create_event_card(parent, event):
             image_label.image = img
             image_label.pack(pady=10)
         else:
-            placeholder_label = tk.Label(content_frame, text="No Image Available", 
-                                       bg="white", fg=TEXT_COLOR, height=10)
+            placeholder_label = tk.Label(content_frame, text="No Image Available",
+                                         bg="white", fg=TEXT_COLOR, height=10)
             placeholder_label.pack(pady=10)
     except Exception as e:
-        tk.Label(content_frame, text=f"Image Error: {str(e)}", 
-                bg="white", fg="red").pack(pady=5)
+        tk.Label(content_frame, text=f"Image Error: {str(e)}",
+                 bg="white", fg="red").pack(pady=5)
 
     # Info section
     info_frame = tk.Frame(content_frame, bg="white")
     info_frame.pack(fill=tk.X, padx=15, pady=10)
 
-    tk.Label(info_frame, text=event["date"], bg="white", 
-            fg=BUTTON_COLOR, font=("Helvetica", 16)).pack(fill=tk.X)
-    tk.Label(info_frame, text=event["title"], bg="white", 
-            fg=PRIMARY_COLOR, font=("Helvetica", 18)).pack(fill=tk.X, pady=(5, 0))
-    tk.Label(info_frame, text=event["time"], bg="white", 
-            fg=TEXT_COLOR, font=("Helvetica", 12)).pack(fill=tk.X)
-    tk.Label(info_frame, text=event["location"], bg="white", 
-            fg=TEXT_COLOR, font=("Helvetica", 12)).pack(fill=tk.X)
+    tk.Label(info_frame, text=event["date"], bg="white",
+             fg=BUTTON_COLOR, font=("Helvetica", 16)).pack(fill=tk.X)
+    tk.Label(info_frame, text=event["title"], bg="white",
+             fg=PRIMARY_COLOR, font=("Helvetica", 18)).pack(fill=tk.X, pady=(5, 0))
+    tk.Label(info_frame, text=event["time"], bg="white",
+             fg=TEXT_COLOR, font=("Helvetica", 12)).pack(fill=tk.X)
+    tk.Label(info_frame, text=event["location"], bg="white",
+             fg=TEXT_COLOR, font=("Helvetica", 12)).pack(fill=tk.X)
 
     # Bottom section
     bottom_frame = tk.Frame(content_frame, bg="white")
@@ -135,13 +113,13 @@ def create_event_card(parent, event):
 
     # Format price with proper currency
     price_text = f"NPR {float(event['ticket_price']):,.2f}"
-    tk.Label(bottom_frame, text=price_text, bg="white", 
-            fg=BUTTON_COLOR, font=("Helvetica", 14)).pack(side=tk.LEFT)
+    tk.Label(bottom_frame, text=price_text, bg="white",
+             fg=BUTTON_COLOR, font=("Helvetica", 14)).pack(side=tk.LEFT)
 
     # Add tickets available info
     tickets_text = f"Available: {event['available_tickets']}"
-    tk.Label(bottom_frame, text=tickets_text, bg="white", 
-            fg=TEXT_COLOR, font=("Helvetica", 12)).pack(side=tk.LEFT, padx=10)
+    tk.Label(bottom_frame, text=tickets_text, bg="white",
+             fg=TEXT_COLOR, font=("Helvetica", 12)).pack(side=tk.LEFT, padx=10)
 
     # Buy button
     buy_button = tk.Button(
@@ -156,7 +134,28 @@ def create_event_card(parent, event):
 
     return card
 
-# Function to fetch events from database
+# Function to calculate the number of columns based on the window width
+def get_number_of_columns():
+    screen_width = root.winfo_width()
+    if screen_width >= 1200:
+        return 3
+    elif screen_width >= 800:
+        return 2
+    return 1
+
+# Function to update event cards
+def update_event_cards(event=None):
+    for widget in container.winfo_children():
+        widget.destroy()
+
+    num_columns = get_number_of_columns()
+    for i, event in enumerate(events):
+        row, column = divmod(i, num_columns)
+        card = create_event_card(container, event)
+        card.grid(row=row, column=column, padx=15, pady=20, sticky="nsew")
+        container.grid_columnconfigure(column, weight=1)
+        container.grid_rowconfigure(row, weight=1)
+
 def fetch_events_from_db():
     db_events = []
     try:
@@ -269,6 +268,8 @@ try:
          "image": "npl.png", "ticket_price": 750, "available_tickets": 250},
         {"title": "Grasslands Carnival", "date": "5 Dec", "time": "4:30 PM onwards", "location": "Patan Durbar Square",
          "image": "grass.jpg", "ticket_price": 350, "available_tickets": 75},
+        {"title": "Rock Festival", "date": "10 Dec", "time": "5:00 PM onwards", "location": "City Center",
+         "image": "images.jpeg", "ticket_price": 600, "available_tickets": 150},
         {"title": "Tech Conference 2025", "date": "23 Dec", "time": "9:00 AM onwards", "location": "Kathmandu",
          "image": "maxresdefault.png", "ticket_price": 800, "available_tickets": 200},
         {"title": "New Year's Eve Party", "date": "31 Dec", "time": "10:00 PM onwards", "location": "City Hall",
@@ -277,7 +278,7 @@ try:
 
     events.extend(hardcoded_events)
     seen_titles = set(event["title"] for event in events)
-    
+
     db_events = fetch_events_from_db()
     for event in db_events:
         if event["title"] not in seen_titles:
@@ -286,7 +287,7 @@ try:
 
     update_event_cards()  # Initial render of events
     root.bind("<Configure>", lambda e: update_event_cards() if e.widget == root else None)
-
+    root.bind("<Escape>", lambda e: root.state('normal'))
     root.mainloop()
 
 except Exception as e:

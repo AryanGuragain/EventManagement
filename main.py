@@ -227,6 +227,24 @@ class AdminDashboard:
         except sqlite3.Error as e:
             messagebox.showerror("Database Error", f"Error fetching booking data: {str(e)}")
 
+    def display_total_tickets(self):
+        """Display total revenue and number of tickets sold."""
+        try:
+            conn = sqlite3.connect('samaaye_events.db')
+            cursor = conn.cursor()
+            cursor.execute('SELECT SUM(total_price), SUM(ticket_quantity) FROM bookings')
+            data = cursor.fetchone()
+            conn.close()
+
+            total_revenue = data[0] if data[0] else 0.00
+            total_tickets = data[1] if data[1] else 0
+
+            self.net_sales_label.config(text=f"Total Revenue (Rs):\n{total_revenue:.2f}")
+            self.total_tickets_label.config(text=f"Total Tickets Sold:\n{total_tickets}")
+
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error fetching total tickets data: {str(e)}")
+
     def view_tickets_info(self):
         """Display information about who purchased which tickets with price."""
         top = tk.Toplevel(self.root)

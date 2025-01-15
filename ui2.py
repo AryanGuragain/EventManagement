@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import sqlite3
 import sys
+import subprocess  # Import subprocess module
 
 # Original Color Palette
 COLORS = {
@@ -61,10 +62,8 @@ class TicketBookingApp:
         self.event = event
         self.ticket_quantity = tk.IntVar(value=1)
         
-        # Setup database
         self.setup_database()
 
-        # Configure grid weights for responsive layout
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_rowconfigure(1, weight=1)
         
@@ -72,11 +71,9 @@ class TicketBookingApp:
         self._create_content_container()
         
     def setup_database(self):
-        """Setup SQLite database if it doesn't exist"""
         conn = sqlite3.connect('samaaye_events.db')
         cursor = conn.cursor()
         
-        # Create bookings table if it doesn't exist
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS bookings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -101,7 +98,6 @@ class TicketBookingApp:
         header.grid_propagate(False)
         header.grid_columnconfigure(1, weight=1)
         
-        # Logo
         tk.Label(
             header,
             text="SAMAAYE EVENTS",
@@ -110,18 +106,34 @@ class TicketBookingApp:
             fg=COLORS['accent']
         ).grid(row=0, column=0, padx=30, pady=15)
         
-        # Navigation
         nav_frame = tk.Frame(header, bg=COLORS['primary'])
         nav_frame.grid(row=0, column=2, padx=30)
         
-        for item in ["Events", "Tickets", "Stats", "My Account"]:
-            ModernButton(
-                nav_frame,
-                text=item,
-                bg=COLORS['primary'],
-                fg=COLORS['accent']
-            ).pack(side="left", padx=5)
+        ModernButton(
+            nav_frame,
+            text="Events",
+            bg=COLORS['primary'],
+            fg=COLORS['accent']
+        ).pack(side="left", padx=5)
+        
+        ModernButton(
+            nav_frame,
+            text="Tickets",
+            bg=COLORS['primary'],
+            fg=COLORS['accent'],
+            command=self.open_ticket_script  # Assign command to open ticket.py
+        ).pack(side="left", padx=5)
+
+        ModernButton(
+            nav_frame,
+            text="My Account",
+            bg=COLORS['primary'],
+            fg=COLORS['accent']
+        ).pack(side="left", padx=5)
     
+    def open_ticket_script(self):
+        subprocess.Popen([sys.executable, 'ticket.py'])  # Run ticket.py using subprocess
+
     def _create_content_container(self):
         container = tk.Frame(self.root, bg=COLORS['accent'])
         container.grid(row=1, column=0, sticky="nsew", padx=40, pady=30)
@@ -148,7 +160,6 @@ class TicketBookingApp:
         card.grid(row=1, column=0, sticky="ew", pady=(0, 30))
         card.grid_columnconfigure(1, weight=1)
         
-        # Event info section
         info_frame = tk.Frame(card, bg=COLORS['primary'], pady=20, padx=30)
         info_frame.grid(row=0, column=0, sticky="w")
         
@@ -168,7 +179,6 @@ class TicketBookingApp:
             fg=COLORS['accent']
         ).pack(anchor="w", pady=(5, 0))
         
-        # Location section
         location_frame = tk.Frame(card, bg=COLORS['primary'], pady=20)
         location_frame.grid(row=0, column=1, sticky="e", padx=30)
         
@@ -188,7 +198,6 @@ class TicketBookingApp:
             fg=COLORS['accent']
         ).pack(anchor="e", pady=(5, 0))
         
-        # Ticket quantity section
         quantity_frame = tk.Frame(card, bg=COLORS['primary'], pady=20, padx=30)
         quantity_frame.grid(row=0, column=2, sticky="e")
         
@@ -246,7 +255,6 @@ class TicketBookingApp:
         form_container.grid(row=2, column=0, sticky="ew")
         form_container.grid_columnconfigure(0, weight=1)
         
-        # Form header
         header = tk.Frame(form_container, bg=COLORS['primary'], height=50)
         header.grid(row=0, column=0, sticky="ew")
         header.grid_propagate(False)
@@ -259,7 +267,6 @@ class TicketBookingApp:
             fg=COLORS['accent']
         ).pack(side="left", padx=20, pady=10)
         
-        # Form fields
         form_frame = tk.Frame(form_container, bg=COLORS['card_bg'], padx=30, pady=30)
         form_frame.grid(row=1, column=0, sticky="ew")
         form_frame.grid_columnconfigure(0, weight=1)
@@ -300,7 +307,7 @@ class TicketBookingApp:
         ).grid(row=len(fields)*2+1, column=0, sticky="ew", pady=(0, 10))
     
     def calculate_total_price(self):
-        return int(self.event['ticket_price']) * self.ticket_quantity.get()
+        return float(self.event['ticket_price']) * self.ticket_quantity.get()
     
     def update_price_label(self):
         self.price_label.config(text=f"Total: NPR {self.calculate_total_price():,}")
@@ -318,13 +325,11 @@ class TicketBookingApp:
             self.update_price_label()
     
     def book_ticket(self):
-        # Validate form
         for label, entry in self.entries.items():
             if not entry.get() or entry.get() == entry.placeholder:
                 messagebox.showwarning("Incomplete Form", f"Please enter your {label.lower()}")
                 return
         
-        # Save booking to database
         try:
             conn = sqlite3.connect('samaaye_events.db')
             cursor = conn.cursor()
@@ -347,7 +352,6 @@ class TicketBookingApp:
             messagebox.showerror("Database Error", f"Error saving booking: {str(e)}")
             return
         
-        # Show confirmation
         total = self.calculate_total_price()
         message = f"""
 Booking Summary:
@@ -374,8 +378,8 @@ if __name__ == "__main__":
         "date": sys.argv[2],
         "time": sys.argv[3],
         "location": sys.argv[4],
-        "ticket_price": sys.argv[5],
-        "available_tickets": sys.argv[6],
+        "ticket_price": float(sys.argv[5]),  # Convert to float
+        "available_tickets": int(sys.argv[6])  # Convert to int
     }
 
     root = tk.Tk()

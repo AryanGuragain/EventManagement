@@ -1,10 +1,11 @@
 import os
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 from PIL import Image, ImageTk
 import traceback
 import subprocess
 import platform
+import sqlite3
 
 # Refined Color Palette - Professional and Minimalistic
 PRIMARY_COLOR = "#2C3E50"      # Charcoal Blue - Elegant Base Color
@@ -37,21 +38,27 @@ def purchase_ticket(event):
 
 # Function to handle menu item clicks
 def handle_menu_click(item):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
     if item == "Tickets":
-        current_dir = os.path.dirname(os.path.abspath(__file__))
         tickets_path = os.path.abspath(os.path.join(current_dir, "ticket.py"))
         try:
             subprocess.Popen(["python3", tickets_path])
         except Exception as e:
             show_error(f"Error launching ticket.py: {str(e)}")
+    elif item == "My Account":
+        main_path = os.path.abspath(os.path.join(current_dir, "main.py"))
+        try:
+            subprocess.Popen(["python3", main_path])
+        except Exception as e:
+            show_error(f"Error launching main.py: {str(e)}")
     else:
         messagebox.showinfo("Info", f"{item} menu item clicked!")
 
 # Function to create an event card widget
-def create_event_card(parent, event, row, column):
+def create_event_card(parent, event):
     card = tk.Frame(parent, bg="white", relief=tk.FLAT, borderwidth=1,
                     highlightthickness=1, highlightbackground=SECONDARY_COLOR, padx=20, pady=20)
-    card.config(width=380, height=500)
+    card.config(width=530, height=700)  # Reduced width to 530 pixels
     card.grid_propagate(False)
 
     content_frame = tk.Frame(card, bg="white")
@@ -61,7 +68,7 @@ def create_event_card(parent, event, row, column):
     try:
         img_path = event.get("image", "")
         if img_path and os.path.exists(img_path):
-            img = Image.open(img_path).resize((380, 180), Image.LANCZOS)  # Reduced size
+            img = Image.open(img_path).resize((530, 300), Image.LANCZOS)  # Adjusted size for the image
             img = ImageTk.PhotoImage(img)
             image_label = tk.Label(content_frame, image=img, bg="white")
             image_label.image = img
@@ -90,34 +97,55 @@ def create_event_card(parent, event, row, column):
 
     return card
 
-# Function to calculate the number of columns based on the screen size
-def get_number_of_columns():
-    screen_width = root.winfo_width()
-    if screen_width >= 1200:
-        return 3  # 3 columns for wide screens
-    elif screen_width >= 800:
-        return 2  # 2 columns for medium screens
-    return 1  # 1 column for smaller screens
-
 # Function to update the layout of event cards
 def update_event_cards(event=None):
     for widget in container.winfo_children():
         widget.grid_forget()  # Forget the old widgets before updating
 
-    num_columns = get_number_of_columns()  # Get the number of columns dynamically
-    num_rows = (len(events) // num_columns) + (1 if len(events) % num_columns > 0 else 0)  # Calculate rows
+    num_columns = 3  # Fixed number of columns
+    num_rows = 4     # Fixed number of rows
+    total_slots = num_columns * num_rows
 
     # Create event cards and place them in the grid
     for i, event in enumerate(events):
         row, column = divmod(i, num_columns)
-        card = create_event_card(container, event, row, column)
+        card = create_event_card(container, event)
         card.grid(row=row, column=column, padx=15, pady=20, sticky="nsew")
+
+    # Fill remaining slots with empty frames if there are fewer events than total slots
+    for i in range(len(events), total_slots):
+        row, column = divmod(i, num_columns)
+        empty_frame = tk.Frame(container, bg=ACCENT_COLOR, width=530, height=700)
+        empty_frame.grid_propagate(False)
+        empty_frame.grid(row=row, column=column, padx=15, pady=20, sticky="nsew")
 
     # Adjust grid column and row weights for resizing
     for col in range(num_columns):
         container.grid_columnconfigure(col, weight=1)
     for row in range(num_rows):
         container.grid_rowconfigure(row, weight=1)
+
+def fetch_events_from_db():
+    """Fetch events from the database and append to the events list."""
+    try:
+        conn = sqlite3.connect('samaaye_events.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT title, date, time, location, ticket_price, image_path FROM events')
+        rows = cursor.fetchall()
+        conn.close()
+        
+        for row in rows:
+            event = {
+                "title": row[0],
+                "date": row[1],
+                "time": row[2],
+                "location": row[3],
+                "ticket_price": row[4],
+                "image": row[5] if row[5] else ""
+            }
+            events.append(event)
+    except sqlite3.Error as e:
+        show_error(f"Database Error: {str(e)}")
 
 try:
     root = tk.Tk()
@@ -152,14 +180,39 @@ try:
     title = tk.Label(root, text="Upcoming Events", bg=ACCENT_COLOR, fg=PRIMARY_COLOR, font=("Helvetica", 32))
     title.grid(row=1, column=0, pady=30)
 
-    container = tk.Frame(root, bg=ACCENT_COLOR)
-    container.grid(row=2, column=0, padx=20, pady=20, sticky="nsew")
+    # Create a canvas and a scrollbar
+    canvas = tk.Canvas(root, bg=ACCENT_COLOR, width=1550)  # Adjusted canvas width for larger event cards
+    scrollbar = ttk.Scrollbar(root, orient="vertical", command=canvas.yview)
+    scrollable_frame = ttk.Frame(canvas)
 
+    # Create the container frame inside the scrollable frame
+    container = tk.Frame(scrollable_frame, bg=ACCENT_COLOR)
+    container.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(
+            scrollregion=canvas.bbox("all")
+        )
+    )
+
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    # Adjust the grid configuration to allow full width
+    canvas.grid(row=2, column=0, sticky="nsew")
+    scrollbar.grid(row=2, column=1, sticky="ns")
+
+    # Configure the grid weights to allow the canvas to expand
     root.grid_rowconfigure(2, weight=1)
     root.grid_columnconfigure(0, weight=1)
+    root.grid_columnconfigure(1, weight=0)  # Optional: if you want the scrollbar to have a fixed width
 
-    # List of 6 events (Ensure all 6 events are present)
-    events = [
+    # Initialize the events list
+    events = []
+
+    # List of hardcoded events
+    events.extend([
         {"title": "The Big 3 (2nd Show)", "date": "5 Dec", "time": "6:00 PM onwards", "location": "LOD, Thamel",
          "image": os.path.join(os.path.dirname(__file__), "abc.png"), "ticket_price": 500, "available_tickets": 100},
         {"title": "Nepal Premier League", "date": "19 Dec", "time": "9:15 AM onwards", "location": "TU Cricket Ground",
@@ -172,7 +225,13 @@ try:
          "image": os.path.join(os.path.dirname(__file__), "maxresdefault.png"), "ticket_price": 800, "available_tickets": 200},
         {"title": "New Year's Eve Party", "date": "31 Dec", "time": "10:00 PM onwards", "location": "City Hall",
          "image": os.path.join(os.path.dirname(__file__), "TentCardversion.png"), "ticket_price": 1200, "available_tickets": 500},
-    ]
+    ])
+
+    # Fetch events from the database
+    fetch_events_from_db()
+    fetch_events_from_db()
+    fetch_events_from_db()
+    fetch_events_from_db()
 
     update_event_cards()  # Initial render of events
     root.bind("<Configure>", lambda e: update_event_cards() if e.widget == root else None)

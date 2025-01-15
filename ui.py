@@ -6,19 +6,21 @@ import traceback
 import subprocess
 import platform
 import sqlite3
+import sys
 
-# Refined Color Palette - Professional and Minimalistic
-PRIMARY_COLOR = "#2C3E50"      # Charcoal Blue - Elegant Base Color
-SECONDARY_COLOR = "#34495E"    # Dark Slate Blue - Subtle Depth
-ACCENT_COLOR = "#ECF0F1"       # Light Cloud Gray - Clean Background
-BUTTON_COLOR = "#2980B9"       # Calm Blue - Sophisticated Interaction
-TEXT_COLOR = "#2C3E50"         # Dark Charcoal for Readability
+# Refined Color Palette
+PRIMARY_COLOR = "#2C3E50"
+SECONDARY_COLOR = "#34495E"
+ACCENT_COLOR = "#ECF0F1"
+BUTTON_COLOR = "#2980B9"
+TEXT_COLOR = "#2C3E50"
 
-# Function to display error message in a message box
+# Function to display error messages
 def show_error(error):
     messagebox.showerror("Error", str(error))
     traceback.print_exc()
 
+# Function to handle ticket purchase by launching ui2.py with event data
 def purchase_ticket(event):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     ticket_booking_path = os.path.abspath(os.path.join(current_dir, "ui2.py"))
@@ -36,7 +38,7 @@ def purchase_ticket(event):
         print("Event data:", event)
         
         subprocess.Popen([
-            "python3", ticket_booking_path,
+            sys.executable, ticket_booking_path,
             event["title"],
             event["date"],
             event["time"],
@@ -46,7 +48,6 @@ def purchase_ticket(event):
         ])
     except Exception as e:
         show_error(f"Error launching ticket purchase: {str(e)}")
-        traceback.print_exc()
 
 # Function to handle menu item clicks
 def handle_menu_click(item):
@@ -54,18 +55,41 @@ def handle_menu_click(item):
     if item == "Tickets":
         tickets_path = os.path.abspath(os.path.join(current_dir, "ticket.py"))
         try:
-            subprocess.Popen(["python3", tickets_path])
+            subprocess.Popen([sys.executable, tickets_path])
         except Exception as e:
             show_error(f"Error launching ticket.py: {str(e)}")
     elif item == "My Account":
         main_path = os.path.abspath(os.path.join(current_dir, "main.py"))
         try:
-            subprocess.Popen(["python3", main_path])
+            subprocess.Popen([sys.executable, main_path])
         except Exception as e:
             show_error(f"Error launching main.py: {str(e)}")
     else:
         messagebox.showinfo("Info", f"{item} menu item clicked!")
 
+# Function to calculate the number of columns based on the window width
+def get_number_of_columns():
+    screen_width = root.winfo_width()
+    if screen_width >= 1200:
+        return 3
+    elif screen_width >= 800:
+        return 2
+    return 1
+
+# Function to update event cards
+def update_event_cards():
+    for widget in container.winfo_children():
+        widget.destroy()
+
+    num_columns = get_number_of_columns()
+    for i, event in enumerate(events):
+        row, column = divmod(i, num_columns)
+        card = create_event_card(container, event)
+        card.grid(row=row, column=column, padx=15, pady=20, sticky="nsew")
+        container.grid_columnconfigure(column, weight=1)
+        container.grid_rowconfigure(row, weight=1)
+
+# Function to create an event card
 def create_event_card(parent, event):
     card = tk.Frame(parent, bg="white", relief=tk.FLAT, borderwidth=1,
                     highlightthickness=1, highlightbackground=SECONDARY_COLOR, padx=20, pady=20)
@@ -132,30 +156,7 @@ def create_event_card(parent, event):
 
     return card
 
-def update_event_cards(event=None):
-    for widget in container.winfo_children():
-        widget.grid_forget()
-
-    num_columns = 3
-    num_rows = 4
-    total_slots = num_columns * num_rows
-
-    for i, event in enumerate(events):
-        row, column = divmod(i, num_columns)
-        card = create_event_card(container, event)
-        card.grid(row=row, column=column, padx=15, pady=20, sticky="nsew")
-
-    for i in range(len(events), total_slots):
-        row, column = divmod(i, num_columns)
-        empty_frame = tk.Frame(container, bg=ACCENT_COLOR, width=530, height=700)
-        empty_frame.grid_propagate(False)
-        empty_frame.grid(row=row, column=column, padx=15, pady=20, sticky="nsew")
-
-    for col in range(num_columns):
-        container.grid_columnconfigure(col, weight=1)
-    for row in range(num_rows):
-        container.grid_rowconfigure(row, weight=1)
-
+# Function to fetch events from database
 def fetch_events_from_db():
     db_events = []
     try:
@@ -188,11 +189,12 @@ def fetch_events_from_db():
         traceback.print_exc()
     return db_events
 
+# Main Application
 try:
     root = tk.Tk()
-    root.title("Samaaye Events")
-    root.update_idletasks()
+    root.title("Samaaye Interactives")
 
+    # Set window state based on the operating system
     if platform.system() == "Windows":
         root.state('zoomed')
     elif platform.system() == "Darwin":  # macOS
@@ -200,7 +202,7 @@ try:
     elif platform.system() == "Linux":
         root.attributes('-zoomed', True)
     else:
-        root.state('zoomed')
+        root.geometry("1200x800")
 
     root.configure(bg=ACCENT_COLOR)
 
@@ -208,13 +210,24 @@ try:
     header = tk.Frame(root, bg=PRIMARY_COLOR, height=80)
     header.grid(row=0, column=0, sticky="ew")
 
-    logo = tk.Label(header, text="Samaaye Events", bg=PRIMARY_COLOR, fg=ACCENT_COLOR, font=("Helvetica", 24))
-    logo.pack(side=tk.LEFT, padx=30, pady=20)
+    # Add logo image instead of text
+    try:
+        logo_path = "Samaaye Interactives.jpg"
+        if os.path.exists(logo_path):
+            logo_img = Image.open(logo_path).resize((150, 80), Image.LANCZOS)
+            logo_img = ImageTk.PhotoImage(logo_img)
+            logo_label = tk.Label(header, image=logo_img, bg=PRIMARY_COLOR)
+            logo_label.image = logo_img
+            logo_label.pack(side=tk.LEFT, padx=30, pady=20)
+        else:
+            tk.Label(header, text="Logo Not Found", bg=PRIMARY_COLOR, fg="red", font=("Helvetica", 16)).pack(side=tk.LEFT, padx=30)
+    except Exception as e:
+        show_error(f"Error loading logo: {e}")
 
     menu = tk.Frame(header, bg=PRIMARY_COLOR)
     menu.pack(side=tk.RIGHT, padx=30)
 
-    for menu_item in ["Events", "Tickets","My Account"]:
+    for menu_item in ["Events", "Tickets", "My Account"]:
         menu_label = tk.Label(menu, text=menu_item, bg=PRIMARY_COLOR, fg=ACCENT_COLOR, font=("Helvetica", 14))
         menu_label.pack(side=tk.LEFT, padx=20)
         menu_label.bind("<Button-1>", lambda e, item=menu_item: handle_menu_click(item))
@@ -251,17 +264,15 @@ try:
     # Add hardcoded events
     hardcoded_events = [
         {"title": "The Big 3 (2nd Show)", "date": "5 Dec", "time": "6:00 PM onwards", "location": "LOD, Thamel",
-         "image": os.path.join(os.path.dirname(__file__), "abc.png"), "ticket_price": 500, "available_tickets": 100},
+         "image": "abc.png", "ticket_price": 500, "available_tickets": 100},
         {"title": "Nepal Premier League", "date": "19 Dec", "time": "9:15 AM onwards", "location": "TU Cricket Ground",
-         "image": os.path.join(os.path.dirname(__file__), "npl.png"), "ticket_price": 750, "available_tickets": 250},
+         "image": "npl.png", "ticket_price": 750, "available_tickets": 250},
         {"title": "Grasslands Carnival", "date": "5 Dec", "time": "4:30 PM onwards", "location": "Patan Durbar Square",
-         "image": os.path.join(os.path.dirname(__file__), "grass.jpg"), "ticket_price": 350, "available_tickets": 75},
-        {"title": "Rock Festival", "date": "10 Dec", "time": "5:00 PM onwards", "location": "City Center",
-         "image": os.path.join(os.path.dirname(__file__), "images.jpeg"), "ticket_price": 600, "available_tickets": 150},
+         "image": "grass.jpg", "ticket_price": 350, "available_tickets": 75},
         {"title": "Tech Conference 2025", "date": "23 Dec", "time": "9:00 AM onwards", "location": "Kathmandu",
-         "image": os.path.join(os.path.dirname(__file__), "maxresdefault.png"), "ticket_price": 800, "available_tickets": 200},
+         "image": "maxresdefault.png", "ticket_price": 800, "available_tickets": 200},
         {"title": "New Year's Eve Party", "date": "31 Dec", "time": "10:00 PM onwards", "location": "City Hall",
-         "image": os.path.join(os.path.dirname(__file__), "TentCardversion.png"), "ticket_price": 1200, "available_tickets": 500},
+         "image": "TentCardversion.png", "ticket_price": 1200, "available_tickets": 500},
     ]
 
     events.extend(hardcoded_events)
@@ -275,7 +286,7 @@ try:
 
     update_event_cards()  # Initial render of events
     root.bind("<Configure>", lambda e: update_event_cards() if e.widget == root else None)
-    root.bind("<Escape>", lambda e: root.state('normal'))
+
     root.mainloop()
 
 except Exception as e:

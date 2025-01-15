@@ -60,11 +60,19 @@ class TicketViewer:
         company_name.pack(side="left", padx=20, pady=10)
 
         # Navigation buttons
-        nav_buttons = ["Events", "Tickets", "Stats", "My Account"]
-        for button in nav_buttons:
-            btn = tk.Button(header, text=button, bg=PRIMARY_COLOR, 
-                          fg=ACCENT_COLOR, bd=0)
+        nav_buttons = [
+            ("Events", self.quit_window),
+            ("Tickets", self.quit_window),
+            ("My Account", None)  # Add appropriate command for "My Account" if needed
+        ]
+        for button_text, command in nav_buttons:
+            btn = tk.Button(header, text=button_text, bg=PRIMARY_COLOR, 
+                          fg=ACCENT_COLOR, bd=0, command=command)
             btn.pack(side="left", padx=20, pady=10)
+
+    def quit_window(self):
+        """Quit the application window"""
+        self.root.quit()
 
     def create_main_content(self):
         """Create the main content area"""
